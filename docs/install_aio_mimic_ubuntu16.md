@@ -170,6 +170,19 @@ ceph-deploy admin ceph-1 ceph-2 ceph-3
 ```
 
 - Tạo osd
+- Liệt kê các ổ cứng có trên mỗi node
+
+```
+ceph-deploy disk list ceph-1 ceph-2 ceph-3
+```
+
+- Xóa hết các dữ liệu cũ trên các ổ cứng.
+
+```
+ceph-deploy disk zap ceph-1 /dev/sdb
+```
+
+- Tạo các osd.
 
 ```sh
 ceph-deploy osd create ceph-1 --data /dev/sdb
