@@ -63,7 +63,7 @@ service chrony restart
 - Cài các gói bổ sung
 
 ```
-apt install -y python-setuptools python-virtualenv pip
+apt install -y python-setuptools python-virtualenv python-pip git
 ```
 
 - clone ceph-deploy
@@ -75,8 +75,8 @@ git clone https://github.com/ceph/ceph-deploy.git
 - Thực hiện cài đặt ceph-deploy
 
 ```
-cd ceph-deploy
-./bootstrap
+~# cd ceph-deploy
+~# python setup.py install
 ```
 
 
@@ -97,11 +97,6 @@ su - ceph-deploy
 ```
 
 ##### Thực hiện trên node ceph-1.
-- Tạo alias cho ceph-deploy cmd. `vi ~/.bashrc`
-
-```
-alias ceph-deploy="/root/ceph-deploy/virtualenv/bin/ceph-deploy"
-```
 
 - Cấu hình ceph-deploy ssh đến các node khác.
 
@@ -198,26 +193,106 @@ ceph-deploy osd create ceph-3 --data /dev/sdc
 - Triển khai Ceph MGR nodes
 
 ```
-ceph-deploy mgr create ceph-1
+ceph-deploy mgr create ceph-1 ceph-2 ceph-3
 ```
 
 - Kết quả
 
 ```sh
-ceph -s
+~# ceph -s
   cluster:
-    id:     8c7dcf53-fc06-4cee-a858-543a5d92f783
+    id:     41e59438-96ae-422b-ad90-09ccd881e607
     health: HEALTH_OK
  
   services:
-    mon: 3 daemons, quorum ceph-1,ceph-2,ceph-3
-    mgr: ceph-1(active)
-    osd: 6 osds: 6 up, 6 in
+    mon: 3 daemons, quorum ducpx-ceph-1,ducpx-ceph-2,ducpx-ceph-3
+    mgr: ducpx-ceph-1(active), standbys: ducpx-ceph-3, ducpx-ceph-2
+    osd: 6 osds: 4 up, 4 in
  
   data:
     pools:   0 pools, 0 pgs
     objects: 0  objects, 0 B
-    usage:   6.0 GiB used, 24 GiB / 30 GiB avail
-    pgs:     
+    usage:   4.0 GiB used, 60 GiB / 64 GiB avail
+    pgs:
 ```
+
+- Enable dashboard cho mgr
+
+```
+~# ceph mgr module enable dashboard
+~# ceph mgr module ls
+{
+    "enabled_modules": [
+        "balancer",
+        "dashboard",
+        "iostat",
+        "restful",
+        "status"
+    ],
+    "disabled_modules": [
+        {
+            "name": "hello",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "influx",
+            "can_run": false,
+            "error_string": "influxdb python module not found"
+        },
+        {
+            "name": "localpool",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "prometheus",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "selftest",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "smart",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "telegraf",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "telemetry",
+            "can_run": true,
+            "error_string": ""
+        },
+        {
+            "name": "zabbix",
+            "can_run": true,
+            "error_string": ""
+        }
+    ]
+}
+```
+
+Trong các module được enable đã có dashboard.
+
+Dashboard cần được cấu hình ssl và có tài khoản đăng nhập. Thực hiện các lệnh dưới đây để cấu hình:
+
+```
+~# ceph dashboard create-self-signed-cert
+~# ceph dashboard set-login-credentials <username> <password>
+~# ceph mgr services
+{
+    "dashboard": "https://<ip_server>:8080/"
+}
+```
+
+Truy cập vào địa chỉ `https://<ip_server>:8080/` với tên đăng nhập đã tạo ở trên ta sẽ vào dashboard của ceph
+
+  ![](../images/dashboard.png)
 
