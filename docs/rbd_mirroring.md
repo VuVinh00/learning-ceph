@@ -13,7 +13,9 @@ RBD mirroring có thể được cấu hình theo 2 cách `one way` và `two way
 [1. Cấu hình one way](#1)
 - [mode pool](#2)
 - [mode image](#3)
+
 [2. Cấu hình two way](#4)
+
 [Tham khảo](#5)
 
 <a name=1></a>
