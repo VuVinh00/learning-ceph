@@ -65,16 +65,16 @@ Sau khi đổi tên file, thực hiện các cli ceph với cluster này đều 
 # trên ceph cluster
 ~# cd /etc/ceph
 /etc/ceph# ls
-ceph.client.admin.keyring  ceph.client.local.keyring  ceph.conf  rbdmap  tmpEN3FPb
-/etc/ceph# scp ceph.conf ceph.client.local.keyring root@<ip backup cluster>:/etc/ceph
+ceph.client.admin.keyring  ceph.client.primary.keyring  ceph.conf  rbdmap  tmpEN3FPb
+/etc/ceph# scp ceph.conf ceph.client.primary.keyring root@<ip backup cluster>:/etc/ceph
 
 # trên backup cluster
 ~# cd /etc/ceph
 /etc/ceph# ls
 backup.client.admin.keyring   backup.conf                ceph.conf  tmpDYx8uC 
-backup.client.remote.keyring  ceph.client.local.keyring  rbdmap
+backup.client.secondary.keyring  ceph.client.primary.keyring  rbdmap
 
-/etc/ceph# scp backup.client.remote.keyring backup.conf root@<ip ceph cluster>:/etc/ceph
+/etc/ceph# scp backup.client.secondary.keyring backup.conf root@<ip ceph cluster>:/etc/ceph
 ```
 
 #### Cấu hình pool 
