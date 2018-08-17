@@ -69,16 +69,11 @@ apt install -y python-setuptools python-virtualenv python-pip git
 - clone ceph-deploy
 
 ```
-git clone https://github.com/ceph/ceph-deploy.git
+wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
+echo deb https://download.ceph.com/debian-mimic/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
+apt update
+apt install ceph-deploy
 ```
-
-- Thực hiện cài đặt ceph-deploy
-
-```
-~# cd ceph-deploy
-~# python setup.py install
-```
-
 
 ## add user ceph-deploy.
 - Thực hiện trên tất cả các node.
@@ -295,4 +290,3 @@ Dashboard cần được cấu hình ssl và có tài khoản đăng nhập. Th�
 Truy cập vào địa chỉ `https://<ip_server>:8080/` với tên đăng nhập đã tạo ở trên ta sẽ vào dashboard của ceph
 
   ![](../images/dashboard.png)
-
