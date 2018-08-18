@@ -131,7 +131,7 @@ ceph-deploy-ceph.log  ceph.conf  ceph.mon.keyring
 [global]
 fsid = 8c7dcf53-fc06-4cee-a858-543a5d92f783
 mon_initial_members = ceph-1, ceph-2, ceph-3
-mon_host = 10.10.10.11,10.10.10.12,10.10.10.13
+mon_host = 172.16.14.11,172.16.14.12,172.16.14.13
 auth_cluster_required = cephx
 auth_service_required = cephx
 auth_client_required = cephx
