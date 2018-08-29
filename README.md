@@ -17,3 +17,9 @@
 ## CEPH File System
 
 [Install mds](./docs/install_mds.md)
+
+## CEPH RADOS GATEWAY
+
+[Install rgw](./docs/rgw_install.md)
+
+[Access ceph object thông qua s3 api](./docs/rgw_access_s3_api.md)
