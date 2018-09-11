@@ -35,7 +35,7 @@ Cấu hình bind service. `vi /etc/bind/named.conf.options`
 ```sh
 acl "trusted" {
         10.5.8.0/22;
-}
+};
 
 options {
         directory "/var/cache/bind";
@@ -86,7 +86,8 @@ $TTL    604800
                          604800 )       ; Negative Cache TTL
 ;
 @       IN      NS      ceph-s3.com.
-ceph-s3.com.          IN      A       10.5.8.185
+@       IN      A       10.5.8.185
+*       IN      CNAME   *
 ```
 
 Cấu hình phân giải ngược:

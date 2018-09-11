@@ -2,25 +2,13 @@
 
 Thực hiện tích hợp với mô hình:
 
-  ![](../images/integrate_ceph_ops.png)
+  ![](../../images/integrate_ceph_ops.png)
 
 ---
 
-Tạo thư mục để chứa file cấu hình và các keyring để sử dụng ceph. Thực hiện trên controller
+Cài đặt các thành phần để sử dụng ceph trên node controller.
 
-```
-mkdir /etc/ceph
-```
-
-Lấy file cấu hình của ceph
-
-```
-scp root@<ip_ceph>:/etc/ceph/ceph.conf /etc/ceph/
-```
-
-Cài đặt các thành phần để sử dụng ceph
-
-```
+```sh
 wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
 echo deb https://download.ceph.com/debian-mimic/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
 apt update
@@ -29,7 +17,7 @@ apt install python-rbd ceph-common -y
 
 Kiểm tra lại các gói cài đặt. Kết quả là `13.2.0` thì đúng là phiên bản mimic
 
-```
+```sh
 ~# dpkg -l | egrep -i "ceph|rados|rbd"
 ii  ceph-common                         13.2.0-1xenial                              amd64        common utilities to mount and interact with a ceph storage cluster
 ii  libcephfs2                          13.2.0-1xenial                              amd64        Ceph distributed file system client library
@@ -37,7 +25,6 @@ ii  librados2                           13.2.0-1xenial                          
 ii  libradosstriper1                    13.2.0-1xenial                              amd64        RADOS striping interface
 ii  librbd1                             13.2.0-1xenial                              amd64        RADOS block device client library
 ii  librgw2                             13.2.0-1xenial                              amd64        RADOS Gateway client library
-ii  libvirt-daemon-driver-storage-rbd   4.0.0-1ubuntu8.3~cloud0                     amd64        Virtualization daemon RBD storage driver
 ii  python-cephfs                       13.2.0-1xenial                              amd64        Python 2 libraries for the Ceph libcephfs library
 ii  python-rados                        13.2.0-1xenial                              amd64        Python 2 libraries for the Ceph librados library
 ii  python-rbd                          13.2.0-1xenial                              amd64        Python 2 libraries for the Ceph librbd library
@@ -50,13 +37,13 @@ ii  python-rgw                          13.2.0-1xenial                          
 
 - Tạo pool images
 
-```
+```sh
 ceph osd pool create images 64 64
 ```
 
 - Tạo user cho glance
 
-```
+```sh
 ceph auth get-or-create client.glance mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images' -o /etc/ceph/ceph.client.glance.keyring
 ```
 
@@ -64,7 +51,7 @@ ceph auth get-or-create client.glance mon 'allow r' osd 'allow class-read object
 
 - Lấy keyring của client.glance từ ceph node
 
-```
+```sh
 scp root@<ip_ceph>:/etc/ceph/ceph.client.glance.keyring /etc/ceph/
 chown glance:glance /etc/ceph/ceph.client.glance.keyring
 ```
@@ -73,11 +60,11 @@ Cấu hình:
 
 - Cài đặt công cụ cấu hình cho openstack nếu trên controller chưa được cài đặt
 
-```
+```sh
 apt install -y crudini
 ```
 
-```
+```sh
 crudini --set /etc/glance/glance-api.conf DEFAULT enable_v2_api true
 crudini --set /etc/glance/glance-api.conf DEFAULT enable_v2_registry true
 crudini --set /etc/glance/glance-api.conf DEFAULT enable_v1_api true
@@ -94,7 +81,7 @@ crudini --set /etc/glance/glance-api.conf glance_store rbd_store_chunk_size 8
 
 Restart service
 
-```
+```sh
 service glance-registry restart
 service glance-api restart
 ```
@@ -103,13 +90,13 @@ Kiểm tra kết quả
 
 - Download image
 
-```
+```sh
 wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
 ```
 
 - Tạo img mới
 
-```
+```sh
 openstack image create "cirros-ceph" \
 --file cirros-0.3.5-x86_64-disk.img \
 --disk-format qcow2 --container-format bare \
@@ -118,7 +105,7 @@ openstack image create "cirros-ceph" \
 
 List các image
 
-```
+```sh
 ~# openstack image list
 +--------------------------------------+-------------+--------+
 | ID                                   | Name        | Status |
@@ -130,7 +117,7 @@ List các image
 
 show details cirros-ceph
 
-```
+```sh
 ~# openstack image show cirros-ceph
 +------------------+------------------------------------------------------+
 | Field            | Value                                                |
@@ -159,7 +146,7 @@ show details cirros-ceph
 - image có id `0bfd10d9-43ef-4835-8189-9ea9a9902a0e`
 - Kiểm tra image có trong images pool ở trên ceph
 
-```
+```sh
 ~# rbd -p images ls
 0bfd10d9-43ef-4835-8189-9ea9a9902a0e
 ```
@@ -172,18 +159,29 @@ Như vậy đã thành công.
 
 Tạo pool
 
-```
+```sh
 ceph osd pool create volumes 64 64
 ```
 
 Tạo user cinder
 
-```
+```sh
 ceph auth get-or-create client.cinder mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rwx pool=vms, allow rwx pool=images' -o /etc/ceph/ceph.client.cinder.keyring
 ```
 
+Chuyển key sang node controller
 
+```sh
+scp /etc/ceph/ceph.client.cinder.keyring root@<ipcontroller>:/etc/ceph/
+ssh <ipcontroller> sudo chown cinder:cinder /etc/ceph/ceph.client.cinder.keyring
+```
 
+Chuyển key client.cinder sang node compute-1
+
+```sh
+ceph auth get-or-create client.cinder | ssh <ipcompute-1> sudo mkdir /etc/ceph; sudo tee /etc/ceph/ceph.client.cinder.keyring
+ceph auth get-key client.cinder | ssh <ipcompute-1> tee /root/client.cinder.key
+```
 
 
 
